@@ -5,7 +5,7 @@ const requestHandler = (req, res) => {
     const method = req.method
     if (url === '/') {
         res.write('<html>')
-        res.write('<head><title>Enter message</title></head>')
+        res.write('<head><title>Nodejs app</title></head>')
         res.write('<body><h1>Hello from Nodejs server</h1><form action="/create-user" method="POST"><input type="text" name="username" /><button type="submit">Submit</button></form><a href="/users">view users</a></body>')
         res.write('</html>')
         return res.end();
