@@ -1,9 +1,7 @@
 const http = require('http')
+const routes = require('./routes')
 
-const express = require('express')
-const app = express()
-
-const server = http.createServer(app)
+const server = http.createServer(routes)
 
 server.listen(4000, () => {
     console.log('App is running on 4000')
