@@ -1,22 +1,20 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-// const { engine } = require('express-handlebars')
+const path = require("path");
 
 const app = express();
 
-// to use handle bar as a engine
-// app.engine('hbs', engine({ extname: 'hbs', }))
-// app.set('view engine', 'hbs'y)
 app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
-const adminData = require("./routes/admin");
-const shopRoutes = require("./routes/shop");
+const addUser = require("./routes/addUser");
+const userRoutes = require("./routes/users");
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/admin", adminData.router);
-app.use(shopRoutes);
+app.use(addUser.router);
+app.use(userRoutes);
 
 app.use((req, res) => {
 	res.status(404).render("404", { pageTitle: "Page Not Found", path: "" });
