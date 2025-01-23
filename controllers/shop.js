@@ -1,8 +1,9 @@
-// const Cart = require("../models/cart");
+const Order = require("../models/order");
 const Product = require("../models/product");
+const user = require("../models/user");
 
 exports.getProducts = (req, res, next) => {
-	Product.fetchAll()
+	Product.find()
 		.then(products => {
 			res.render("shop/product-list", {
 				prods: products,
@@ -29,7 +30,7 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getShop = (req, res, next) => {
-	Product.fetchAll()
+	Product.find()
 		.then(products => {
 			res.render("shop/index", {
 				prods: products,
@@ -38,14 +39,16 @@ exports.getShop = (req, res, next) => {
 			});
 		})
 		.catch(err => {
-			console.log(err);
+			console.log(err, "hereee");
 		});
 };
 
 exports.getCart = (req, res, next) => {
 	req.user
-		.getCart()
-		.then(products => {
+		.populate("cart.items.productId") // populate only the data which we need to expand and use
+		.then(user => {
+			const products = user.cart.items;
+			console.log({ products });
 			res.render("shop/cart", {
 				path: "/cart",
 				pageTitle: "Your Cart",
@@ -77,8 +80,7 @@ exports.addCart = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-	req.user
-		.getOrders()
+	Order.find({ "user.userId": req.user._id })
 		.then(orders => {
 			res.render("shop/orders", {
 				path: "/orders",
@@ -91,7 +93,27 @@ exports.getOrders = (req, res, next) => {
 
 exports.postOrder = (req, res, next) => {
 	req.user
-		.addOrder()
+		.populate("cart.items.productId") // populate only the data which we need to expand and use
+		.then(user => {
+			const products = user.cart.items.map(item => {
+				return {
+					product: { ...item.productId._doc },
+					quantity: item.quantity,
+				};
+			});
+			console.log(user.cart.items);
+			const order = new Order({
+				user: {
+					userId: req.user,
+					name: req.user.name,
+				},
+				products,
+			});
+			return order.save();
+		})
+		.then(() => {
+			return req.user.clearCart();
+		})
 		.then(() => {
 			res.redirect("/orders");
 		})

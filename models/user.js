@@ -1,127 +1,68 @@
-const { getDb, mongoDb } = require("../utils/database");
+const { mongooseSchema, mongooseRoot } = require("../utils/database");
 
-class User {
-	constructor(username, email, cart, id) {
-		this.name = username;
-		this.email = email;
-		this.cart = cart; //{items:[]}
-		this._id = id;
-	}
-
-	save() {
-		const db = getDb();
-		return db.collection("users").insertOne(this);
-	}
-
-	addToCart(product) {
-		const db = getDb();
-		const cartItemIndex = this.cart.items.findIndex(
-			cp => cp.productId.toString() === product._id.toString()
-		);
-		const updatedCartItems = [...this.cart.items];
-		let newQuantity = 1;
-		if (cartItemIndex >= 0) {
-			newQuantity = this.cart.items[cartItemIndex].quantity + 1;
-			updatedCartItems[cartItemIndex].quantity = newQuantity;
-		} else {
-			updatedCartItems.push({
-				productId: new mongoDb.ObjectId(product._id),
-				quantity: newQuantity,
-			});
-		}
-		const updatedCart = {
-			items: updatedCartItems,
-		};
-		return db.collection("users").updateOne(
-			{ _id: new mongoDb.ObjectId(this._id) },
+const userSchema = new mongooseSchema({
+	name: {
+		type: String,
+		required: true,
+	},
+	email: {
+		type: String,
+		required: true,
+	},
+	cart: {
+		items: [
 			{
-				$set: { cart: updatedCart },
-			}
-		);
-	}
+				productId: {
+					type: mongooseSchema.Types.ObjectId,
+					required: true,
+					ref: "Product",
+				},
+				quantity: {
+					type: Number,
+					required: true,
+				},
+			},
+		],
+	},
+});
 
-	getCart() {
-		const db = getDb();
-		const productIds = this.cart.items.map(item => item.productId);
-		return db
-			.collection("products")
-			.find({ _id: { $in: productIds } })
-			.toArray()
-			.then(products => {
-				// if we delete product and that product already exits in cart
-				// that time we have to delete that product from cart
-				if (productIds.length && !products.length) {
-					db.collection("users").updateOne(
-						{ _id: new mongoDb.ObjectId(this._id) },
-						{
-							$set: { cart: { items: [] } },
-						}
-					);
-				}
-				return products.map(product => {
-					return {
-						...product,
-						quantity: this.cart.items.find(
-							item => item.productId.toString() === product._id.toString()
-						).quantity,
-					};
-				});
-			})
-			.catch(err => console.log(err));
+function addToCart(product) {
+	const cartItemIndex = this.cart.items.findIndex(
+		cp => cp.productId.toString() === product._id.toString()
+	);
+	const updatedCartItems = [...this.cart.items];
+	let newQuantity = 1;
+	if (cartItemIndex >= 0) {
+		newQuantity = this.cart.items[cartItemIndex].quantity + 1;
+		updatedCartItems[cartItemIndex].quantity = newQuantity;
+	} else {
+		updatedCartItems.push({
+			productId: product._id,
+			quantity: newQuantity,
+		});
 	}
-
-	addOrder() {
-		const db = getDb();
-		return this.getCart()
-			.then(products => {
-				const order = {
-					items: products,
-					user: {
-						_id: new mongoDb.ObjectId(this._id),
-						name: this.name,
-					},
-				};
-				return db.collection("orders").insertOne(order);
-			})
-			.then(() => {
-				this.cart.items = [];
-				return db.collection("users").updateOne(
-					{ _id: new mongoDb.ObjectId(this._id) },
-					{
-						$set: { cart: { items: [] } },
-					}
-				);
-			});
-	}
-
-	getOrders() {
-		const db = getDb();
-		return db
-			.collection("orders")
-			.find({ "user._id": new mongoDb.ObjectId(this._id) })
-			.toArray();
-	}
-
-	deleteCartItem(productId) {
-		const db = getDb();
-		const updatedCartItem = this.cart.items.filter(
-			item => item.productId.toString() !== productId.toString()
-		);
-		return db.collection("users").updateOne(
-			{ _id: new mongoDb.ObjectId(this._id) },
-			{
-				$set: { cart: { items: updatedCartItem } },
-			}
-		);
-	}
-
-	static findById(id) {
-		const db = getDb();
-		return db
-			.collection("users")
-			.find({ _id: new mongoDb.ObjectId(id) })
-			.next();
-	}
+	const updatedCart = {
+		items: updatedCartItems,
+	};
+	this.cart = updatedCart;
+	return this.save();
 }
 
-module.exports = User;
+function deleteCartItem() {
+	const updatedCartItem = this.cart.items.filter(
+		item => item.productId.toString() !== productId.toString()
+	);
+	this.cart.items = updatedCartItem;
+	return this.save();
+}
+
+function clearCart() {
+	this.cart = { items: [] };
+	return this.save();
+}
+
+userSchema.methods.addToCart = addToCart;
+userSchema.methods.deleteCartItem = deleteCartItem;
+userSchema.methods.clearCart = clearCart;
+
+module.exports = mongooseRoot.model("User", userSchema);
