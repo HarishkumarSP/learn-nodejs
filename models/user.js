@@ -48,7 +48,7 @@ function addToCart(product) {
 	return this.save();
 }
 
-function deleteCartItem() {
+function deleteCartItem(productId) {
 	const updatedCartItem = this.cart.items.filter(
 		item => item.productId.toString() !== productId.toString()
 	);

@@ -6,6 +6,7 @@ exports.getProducts = (req, res, next) => {
 		// .populate("userId")
 		.then(products => {
 			res.render("admin/products", {
+				isAuthenticated: req.session.isLoggedIn,
 				prods: products,
 				pageTitle: "Admin Products",
 				path: "/admin/products",
@@ -18,6 +19,7 @@ exports.getProducts = (req, res, next) => {
 
 exports.getAddProduct = (req, res, next) => {
 	res.render("admin/add-product", {
+		isAuthenticated: req.session.isLoggedIn,
 		pageTitle: "Add Product",
 		path: "/admin/add-product",
 		formsCSS: true,
@@ -55,6 +57,7 @@ exports.getEditProduct = (req, res, next) => {
 				return res.redirect("/");
 			}
 			res.render("admin/edit-product", {
+				isAuthenticated: req.session.isLoggedIn,
 				pageTitle: "Edit Product",
 				path: "/admin/edit-product",
 				editing: editMode,
