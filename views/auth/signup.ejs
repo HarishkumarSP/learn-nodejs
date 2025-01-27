@@ -6,11 +6,11 @@
 <body>
    <%- include('../includes/navigation.ejs') %>
 
-    <main>        
+    <main>
         <% if(errorMessage) { %>
             <p class="user-message user-message--error"><%= errorMessage %></p>
             <% } %>
-        <form class="login-form" action="/login" method="POST">
+        <form class="login-form" action="/signup" method="POST">
             <div class="form-control">
                 <label for="email">E-Mail</label>
                 <input type="text" name="email" id="email">
@@ -18,9 +18,11 @@
             <div class="form-control">
                 <label for="password">Password</label>
                 <input type="text" name="password" id="password">
-            </div>
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />            
-            <button class="btn" type="submit">Login</button>
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="text" name="confirmPassword" id="confirmPassword">
+            </div> 
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />           
+            <button class="btn" type="submit">Sign up</button>
         </form>
     </main>
 <%- include('../includes/end.ejs') %>

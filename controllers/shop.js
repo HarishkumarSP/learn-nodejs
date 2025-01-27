@@ -1,12 +1,10 @@
 const Order = require("../models/order");
 const Product = require("../models/product");
-const user = require("../models/user");
 
 exports.getProducts = (req, res, next) => {
 	Product.find()
 		.then(products => {
 			res.render("shop/product-list", {
-				isAuthenticated: req.session.isLoggedIn,
 				prods: products,
 				pageTitle: "All Products",
 				path: "/products",
@@ -22,7 +20,6 @@ exports.getProduct = (req, res, next) => {
 	Product.findById(prodId)
 		.then(product => {
 			res.render("shop/product-detail", {
-				isAuthenticated: req.session.isLoggedIn,
 				product: product,
 				pageTitle: product.title,
 				path: "/products",
@@ -35,7 +32,6 @@ exports.getShop = (req, res, next) => {
 	Product.find()
 		.then(products => {
 			res.render("shop/index", {
-				isAuthenticated: req.session.isLoggedIn,
 				prods: products,
 				pageTitle: "Shop",
 				path: "/",
@@ -53,7 +49,6 @@ exports.getCart = (req, res, next) => {
 			const products = user.cart.items;
 			console.log({ products });
 			res.render("shop/cart", {
-				isAuthenticated: req.session.isLoggedIn,
 				path: "/cart",
 				pageTitle: "Your Cart",
 				products,
@@ -87,7 +82,6 @@ exports.getOrders = (req, res, next) => {
 	Order.find({ "user.userId": req.user._id })
 		.then(orders => {
 			res.render("shop/orders", {
-				isAuthenticated: req.session.isLoggedIn,
 				path: "/orders",
 				pageTitle: "Your Orders",
 				orders: orders,
@@ -106,11 +100,10 @@ exports.postOrder = (req, res, next) => {
 					quantity: item.quantity,
 				};
 			});
-			console.log(user.cart.items);
 			const order = new Order({
 				user: {
 					userId: req.user,
-					name: req.user.name,
+					email: req.user.email,
 				},
 				products,
 			});
