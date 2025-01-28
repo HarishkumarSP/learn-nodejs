@@ -9,6 +9,8 @@ const userSchema = new mongooseSchema({
 		type: String,
 		required: true,
 	},
+	resetToken: String,
+	resetTokenExpiration: Date,
 	cart: {
 		items: [
 			{

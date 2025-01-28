@@ -15,3 +15,7 @@ Authentication and security summary
 
 ![alt text](learning-snaps/image-1.png)
 
+Advanced authentication
+
+![alt text](learning-snaps/image3.png)
+
