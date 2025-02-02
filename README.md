@@ -7,15 +7,20 @@ In this project I was learning nodejs along with that creating nodejs applicatio
 
 ## Authentication
 
-About CSRF attacks- Cross site request forgery
+### About CSRF attacks- Cross site request forgery
 
 ![alt text](learning-snaps/image2.png)
 
-Authentication and security summary
+### Authentication and security summary
 
 ![alt text](learning-snaps/image-1.png)
 
-Advanced authentication
+### Advanced authentication
 
 ![alt text](learning-snaps/image3.png)
+
+### Validation
+
+![alt text](learning-snaps/why-validate.png)
+![alt text](learning-snaps/how-to-validate.png)
 
