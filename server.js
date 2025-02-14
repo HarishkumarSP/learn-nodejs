@@ -20,7 +20,7 @@ app.set("view engine", "ejs");
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
-const { get404 } = require("./controllers/error");
+const { get404, get500 } = require("./controllers/error");
 
 const { mongoConnect } = require("./utils/database");
 const User = require("./models/user");
@@ -39,19 +39,6 @@ app.use(
 app.use(csrf);
 app.use(flash);
 
-app.use((req, res, next) => {
-	if (req.session.user) {
-		User.findById(req.session.user._id)
-			.then(user => {
-				req.user = user;
-				next();
-			})
-			.catch(err => console.log(err));
-	} else {
-		next();
-	}
-});
-
 // setting up common data in res.locals to be accessible on every route
 app.use((req, res, next) => {
 	res.locals.isAuthenticated = req.session.isLoggedIn;
@@ -59,13 +46,41 @@ app.use((req, res, next) => {
 	next();
 });
 
+app.use((req, res, next) => {
+	// throw new Error("dasddsadas");
+	if (!req.session.user) {
+		return next();
+	}
+	User.findById(req.session.user._id)
+		.then(user => {
+			throw new Error("dasd");
+			if (!user) {
+				return next();
+			}
+			req.user = user;
+			next();
+		})
+		.catch(err => {
+			next(new Error(err));
+		});
+});
+
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
+app.get("/500", get500);
 app.use(get404);
 
+app.use((error, req, res, next) => {
+	res.status(500).render("500", {
+		pageTitle: "Error",
+		path: "/500",
+		isAuthenticated: req.session.isLoggedIn,
+	});
+});
+
 mongoConnect(() => {
-	app.listen(4000, () => {
-		console.log("App is running on 4000");
+	app.listen(5000, () => {
+		console.log("App is running on 5000");
 	});
 });
