@@ -24,3 +24,8 @@ In this project I was learning nodejs along with that creating nodejs applicatio
 ![alt text](learning-snaps/why-validate.png)
 ![alt text](learning-snaps/how-to-validate.png)
 
+### Error handling
+![alt text](learning-snaps/error-handling/type-of-erros.png)
+![alt text](learning-snaps/error-handling/working-with-errors.png)
+![alt text](learning-snaps/error-handling/errors-http-codes.png)
+![alt text](learning-snaps/error-handling/module-summary.png)
