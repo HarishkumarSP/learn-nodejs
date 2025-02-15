@@ -47,13 +47,11 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-	// throw new Error("dasddsadas");
 	if (!req.session.user) {
 		return next();
 	}
 	User.findById(req.session.user._id)
 		.then(user => {
-			throw new Error("dasd");
 			if (!user) {
 				return next();
 			}
