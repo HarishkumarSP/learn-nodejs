@@ -259,7 +259,9 @@ form {
   margin: 0 1rem;
 }
 .pagination a:hover,
-.pagination a:active{
+.pagination a:active,
+.pagination a.active
+{
   color: white;
   background: #00695c;
 } 

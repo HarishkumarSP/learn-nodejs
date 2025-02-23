@@ -91,6 +91,7 @@ app.get("/500", get500);
 app.use(get404);
 
 app.use((error, req, res, next) => {
+	console.log({ error });
 	res.status(500).render("500", {
 		pageTitle: "Error",
 		path: "/500",
