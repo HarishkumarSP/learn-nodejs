@@ -9,7 +9,7 @@
     <% } else { %>
         <ul>
     <% orders.forEach(order => { %>
-      <h1> #<%= order._id %></h1>
+      <h1> #<%= order._id %> - <a href='orders/<%= order._id %>'> Invoice</a> </h1>
       <% order.products.forEach(product => { %>
       <ul>
         <li>

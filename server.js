@@ -5,6 +5,7 @@ const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf")();
 const flash = require("connect-flash")();
+const multer = require("multer");
 
 const app = express();
 
@@ -14,6 +15,24 @@ const store = new MongoDBStore({
 	uri: `mongodb+srv://harishkumarsp1998:${mongodbPassword}@cluster0.l94ca.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0`,
 	collection: "sessions",
 });
+
+const fileStorage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, "images");
+	},
+	filename: (req, file, cb) => {
+		const fileName = Math.random() + "-" + file.originalname;
+		console.log({ fileName });
+		cb(null, fileName);
+	},
+});
+const fileFilter = (req, file, cb) => {
+	if (file.mimetype === "image/png" || file.mimetype === "image/jpg" || file.mimetype === "image/jpeg") {
+		cb(null, true);
+	} else {
+		cb(null, false);
+	}
+};
 
 app.set("view engine", "ejs");
 
@@ -26,7 +45,9 @@ const { mongoConnect } = require("./utils/database");
 const User = require("./models/user");
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
 app.use(express.static("public"));
+app.use("/images", express.static("images"));
 app.use(
 	session({
 		secret: "my secret",
