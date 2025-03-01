@@ -6,14 +6,14 @@ exports.getProducts = (req, res, next) => {
 	Product.find({ userId: req.user._id })
 		// .select("title price -_id")
 		// .populate("userId")
-		.then(products => {
+		.then((products) => {
 			res.render("admin/products", {
 				prods: products,
 				pageTitle: "Admin Products",
 				path: "/admin/products",
 			});
 		})
-		.catch(err => {
+		.catch((err) => {
 			console.log(err);
 		});
 };
@@ -91,7 +91,7 @@ exports.postAddProduct = (req, res, next) => {
 		.then(() => {
 			res.redirect("/admin/products");
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -106,7 +106,7 @@ exports.getEditProduct = (req, res, next) => {
 	const prodId = req.params.productId;
 	Product.findById(prodId)
 		// Product.findByPk(prodId)
-		.then(product => {
+		.then((product) => {
 			if (!product) {
 				return res.redirect("/");
 			}
@@ -119,7 +119,7 @@ exports.getEditProduct = (req, res, next) => {
 				validationErrors: [],
 			});
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -150,7 +150,7 @@ exports.postEditProduct = (req, res, next) => {
 	}
 
 	Product.findById(prodId)
-		.then(product => {
+		.then((product) => {
 			if (product.userId.toString() !== req.user._id.toString()) {
 				return res.redirect("/");
 			}
@@ -163,27 +163,25 @@ exports.postEditProduct = (req, res, next) => {
 			}
 			return product.save().then(() => res.redirect("/admin/products"));
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
 		});
 };
 
-exports.postDeleteProduct = (req, res, next) => {
-	const prodId = req.body.productId;
+exports.deleteProduct = (req, res, next) => {
+	const prodId = req.params.productId;
 	Product.findById(prodId)
-		.then(product => {
+		.then((product) => {
 			if (!product) {
 				return next(new Error("Product not found"));
 			}
 			deleteFile(product.imageUrl);
 			return Product.deleteOne({ _id: prodId, userId: req.user._id });
 		})
-		.then(() => res.redirect("/admin/products"))
-		.catch(err => {
-			const error = new Error(err);
-			error.httpStatusCode = 500;
-			return next(error);
+		.then(() => res.status(200).json({ message: "Success" }))
+		.catch((err) => {
+			res.status(500).json({ message: "Delete product failed" });
 		});
 };
