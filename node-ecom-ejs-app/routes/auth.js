@@ -22,16 +22,14 @@ router.post(
 		body("email")
 			.isEmail()
 			.withMessage("Please enter a valid email")
-			.custom(value => {
-				return User.findOne({ email: value }).then(user => {
+			.custom((value) => {
+				return User.findOne({ email: value }).then((user) => {
 					if (!user) {
 						return Promise.reject("Invalid email or password");
 					}
 				});
 			}),
-		body("password", "password has to be valid")
-			.isLength({ min: 5 })
-			.isAlphanumeric(),
+		body("password", "password has to be valid").isLength({ min: 5 }).isAlphanumeric(),
 	],
 	postLogin
 );
@@ -47,17 +45,14 @@ router.post(
 			.isEmail()
 			.withMessage("Please enter a valid email")
 			.custom((value, { req }) => {
-				return User.findOne({ email: value }).then(userData => {
+				return User.findOne({ email: value }).then((userData) => {
 					if (userData) {
 						return Promise.reject("Email already exists");
 					}
 				});
 			})
 			.normalizeEmail(), // sanitize input
-		body(
-			"password",
-			"Please enter a password with only numbers and text and atleast 5 characters"
-		)
+		body("password", "Please enter a password with only numbers and text and atleast 5 characters")
 			.isLength({ min: 5 })
 			.isAlphanumeric()
 			.trim(), // sanitize input

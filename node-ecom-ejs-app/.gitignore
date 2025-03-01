@@ -1,0 +1,5 @@
+node_modules
+*.txt
+data
+.env
+images
