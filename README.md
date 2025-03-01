@@ -29,3 +29,6 @@ In this project I was learning nodejs along with that creating nodejs applicatio
 ![alt text](learning-snaps/error-handling/working-with-errors.png)
 ![alt text](learning-snaps/error-handling/errors-http-codes.png)
 ![alt text](learning-snaps/error-handling/module-summary.png)
+
+### Adding payments
+![alt text](learning-snaps/stripe-payment-flow.png)

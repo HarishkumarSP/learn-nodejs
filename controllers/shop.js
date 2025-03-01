@@ -3,6 +3,7 @@ const Order = require("../models/order");
 const Product = require("../models/product");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const ITEMS_PER_PAGE = 2;
 
 exports.getProducts = (req, res, next) => {
@@ -10,13 +11,13 @@ exports.getProducts = (req, res, next) => {
 	let totalProducts;
 	Product.find()
 		.countDocuments()
-		.then(numProducts => {
+		.then((numProducts) => {
 			totalProducts = numProducts;
 			return Product.find()
 				.skip((page - 1) * ITEMS_PER_PAGE)
 				.limit(ITEMS_PER_PAGE);
 		})
-		.then(products => {
+		.then((products) => {
 			res.render("shop/product-list", {
 				prods: products,
 				pageTitle: "All Products",
@@ -30,7 +31,7 @@ exports.getProducts = (req, res, next) => {
 				lastPage: Math.ceil(totalProducts / ITEMS_PER_PAGE),
 			});
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -40,14 +41,14 @@ exports.getProducts = (req, res, next) => {
 exports.getProduct = (req, res, next) => {
 	const prodId = req.params.productId;
 	Product.findById(prodId)
-		.then(product => {
+		.then((product) => {
 			res.render("shop/product-detail", {
 				product: product,
 				pageTitle: product.title,
 				path: "/products",
 			});
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -59,13 +60,13 @@ exports.getShop = (req, res, next) => {
 	let totalProducts;
 	Product.find()
 		.countDocuments()
-		.then(numProducts => {
+		.then((numProducts) => {
 			totalProducts = numProducts;
 			return Product.find()
 				.skip((page - 1) * ITEMS_PER_PAGE)
 				.limit(ITEMS_PER_PAGE);
 		})
-		.then(products => {
+		.then((products) => {
 			res.render("shop/index", {
 				prods: products,
 				pageTitle: "Shop",
@@ -79,7 +80,7 @@ exports.getShop = (req, res, next) => {
 				lastPage: Math.ceil(totalProducts / ITEMS_PER_PAGE),
 			});
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -89,16 +90,61 @@ exports.getShop = (req, res, next) => {
 exports.getCart = (req, res, next) => {
 	req.user
 		.populate("cart.items.productId") // populate only the data which we need to expand and use
-		.then(user => {
+		.then((user) => {
 			const products = user.cart.items;
-			console.log({ products });
 			res.render("shop/cart", {
 				path: "/cart",
 				pageTitle: "Your Cart",
 				products,
 			});
 		})
-		.catch(err => {
+		.catch((err) => {
+			const error = new Error(err);
+			error.httpStatusCode = 500;
+			return next(error);
+		});
+};
+
+exports.getCheckout = (req, res, next) => {
+	let products;
+	let totalPrice = 0;
+	req.user
+		.populate("cart.items.productId") // populate only the data which we need to expand and use
+		.then((user) => {
+			products = user.cart.items;
+			products.forEach((prod) => {
+				totalPrice += prod.quantity * prod.productId.price;
+			});
+			return stripe.checkout.sessions.create({
+				payment_method_types: ["card"],
+				line_items: products.map((prod) => {
+					return {
+						quantity: prod.quantity,
+						price_data: {
+							currency: "usd",
+							unit_amount: prod.productId.price * 100,
+							product_data: {
+								name: prod.productId.title,
+								description: prod.productId.description,
+							},
+						},
+					};
+				}),
+				mode: "payment",
+				success_url: req.protocol + "://" + req.get("host") + "/checkout/success", // http://localhost:3000/checkout/sucess
+				cancel_url: req.protocol + "://" + req.get("host") + "/checkout/cancel", // http://localhost:3000/checkout/cancel
+			});
+		})
+		.then((session) => {
+			res.render("shop/checkout", {
+				path: "/checkout",
+				pageTitle: "Checkout",
+				products,
+				totalPrice,
+				sessionId: session.id,
+			});
+		})
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -110,7 +156,7 @@ exports.postDeleteCartItem = (req, res, next) => {
 	req.user
 		.deleteCartItem(prodId)
 		.then(() => res.redirect("/cart"))
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -120,14 +166,14 @@ exports.postDeleteCartItem = (req, res, next) => {
 exports.addCart = (req, res, next) => {
 	const prodId = req.body.productId;
 	Product.findById(prodId)
-		.then(product => {
+		.then((product) => {
 			return req.user.addToCart(product);
 		})
-		.then(result => {
+		.then((result) => {
 			console.log(result);
 			res.redirect("/cart");
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -136,25 +182,25 @@ exports.addCart = (req, res, next) => {
 
 exports.getOrders = (req, res, next) => {
 	Order.find({ "user.userId": req.user._id })
-		.then(orders => {
+		.then((orders) => {
 			res.render("shop/orders", {
 				path: "/orders",
 				pageTitle: "Your Orders",
 				orders: orders,
 			});
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
 		});
 };
 
-exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
 	req.user
 		.populate("cart.items.productId") // populate only the data which we need to expand and use
-		.then(user => {
-			const products = user.cart.items.map(item => {
+		.then((user) => {
+			const products = user.cart.items.map((item) => {
 				return {
 					product: { ...item.productId._doc },
 					quantity: item.quantity,
@@ -175,7 +221,7 @@ exports.postOrder = (req, res, next) => {
 		.then(() => {
 			res.redirect("/orders");
 		})
-		.catch(err => {
+		.catch((err) => {
 			const error = new Error(err);
 			error.httpStatusCode = 500;
 			return next(error);
@@ -185,7 +231,7 @@ exports.postOrder = (req, res, next) => {
 exports.getInvoice = (req, res, next) => {
 	const orderId = req.params.orderId;
 	Order.findById(orderId)
-		.then(order => {
+		.then((order) => {
 			if (!order) {
 				return next(new Error("No order found"));
 			}
@@ -207,7 +253,7 @@ exports.getInvoice = (req, res, next) => {
 			pdfDoc.text("-----------------------");
 			pdfDoc.text(`Order Id: ${order._id}`);
 			let totalPrice = 0;
-			order.products.forEach(prod => {
+			order.products.forEach((prod) => {
 				totalPrice += prod.quantity * prod.product.price;
 				pdfDoc.fontSize(15).text(`${prod.product.title} - ${prod.quantity} x $${prod.product.price}`);
 			});
@@ -238,5 +284,5 @@ exports.getInvoice = (req, res, next) => {
 			// );
 			// file.pipe(res);
 		})
-		.catch(err => next(err));
+		.catch((err) => next(err));
 };
