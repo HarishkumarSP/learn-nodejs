@@ -9,10 +9,11 @@ const multer = require("multer");
 
 const app = express();
 
+const mongodbUserName = process.env.MONGODB_USERNAME;
 const mongodbPassword = process.env.MONGODB_PASSWORD;
 
 const store = new MongoDBStore({
-	uri: `mongodb+srv://harishkumarsp1998:${mongodbPassword}@cluster0.l94ca.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0`,
+	uri: `mongodb+srv://${mongodbUserName}:${mongodbPassword}@cluster0.l94ca.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0`,
 	collection: "sessions",
 });
 
@@ -72,14 +73,14 @@ app.use((req, res, next) => {
 		return next();
 	}
 	User.findById(req.session.user._id)
-		.then(user => {
+		.then((user) => {
 			if (!user) {
 				return next();
 			}
 			req.user = user;
 			next();
 		})
-		.catch(err => {
+		.catch((err) => {
 			next(new Error(err));
 		});
 });
