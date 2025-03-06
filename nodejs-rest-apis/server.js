@@ -18,6 +18,6 @@ app.use((req, res, next) => {
 
 app.use("/feed", feedRoutes);
 
-app.listen(5500, () => {
-	console.log("App is running on 5500");
+app.listen(8080, () => {
+	console.log("App is running on 8080");
 });
